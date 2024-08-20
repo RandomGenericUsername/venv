@@ -1,0 +1,192 @@
+#!/bin/bash
+
+# Function to display the help message
+display_help() {
+    echo "Usage: $0 {install|uninstall|set|get|delete|list} [--config <config-file>]"
+    echo ""
+    echo "Commands:"
+    echo "  install     - Install the environment system"
+    echo "  uninstall   - Uninstall the environment system"
+    echo "  set         - Set a variable"
+    echo "  get         - Get a variable"
+    echo "  delete      - Delete a variable"
+    echo "  list        - List all variables"
+    echo ""
+    echo "Options:"
+    echo "  --config, -c  Specify a custom configuration file"
+    exit 1
+}
+
+
+# Directory from which the script was invoked
+export INVOKE_DIR="$(pwd)"
+
+# Resolve the real path of the script even if it's symlinked
+SCRIPT_PATH="$(realpath "$0")"
+export SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+# Set the directory where the other scripts are located
+source "$SCRIPT_DIR/config.sh"
+source "$SCRIPT_DIR/install.sh"
+source "$SCRIPT_DIR/uninstall.sh"
+source "$SCRIPT_DIR/set.sh"
+source "$SCRIPT_DIR/get.sh"
+source "$SCRIPT_DIR/delete.sh"
+source "$SCRIPT_DIR/utils/arg_parser.sh"
+source "$SCRIPT_DIR/utils/validate_config.sh"  
+
+# Define the arguments and their corresponding variable names
+config_path_option=("--config" "-c")
+
+# Define the arguments and their corresponding variable names
+args=(
+    "config_path_option" "config_file"
+)
+
+# Parse the argument definitions
+parse_args "${args[@]}"
+
+# Parse the command line arguments
+parse_command_line "$@"
+
+# Extract the first positional argument as COMMAND
+COMMAND="${POSITIONAL_ARGS[0]}"
+
+# Extract the remaining positional arguments as ARGS array
+ARGS=("${POSITIONAL_ARGS[@]:1}")
+
+# Get the value of the arguments
+export CONFIG_FILE=$(get_arg_value "config_file")
+# Default path for the config file (in the current directory)
+[[ -z "$CONFIG_FILE" ]] && CONFIG_FILE="$INVOKE_DIR/config.sh"
+
+
+# Check if a command was provided and if it is a valid command
+if [ -z "$COMMAND" ] || [[ ! "$COMMAND" =~ ^(install|uninstall|set|get|list|delete)$ ]]; then
+    echo "Error: Invalid or no command provided => $COMMAND"
+    display_help
+    exit 1
+fi
+
+# For all commands except install and uninstall, check if the config file is required
+if [[ "$COMMAND" != "install" && "$COMMAND" != "uninstall" ]]; then
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "Error: Configuration file not found. Please specify a config file using --config."
+        exit 1
+    fi
+    validate_config "$CONFIG_FILE"
+    if [ $? -ne 0 ]; then
+        echo "Invalid config.sh file"
+        exit 1
+    fi
+    source "$CONFIG_FILE"
+fi
+
+# Output the values
+#echo "Command: $COMMAND"
+#echo "Arguments: ${ARGS[@]}"
+#echo "Config path: $CONFIG_FILE"
+
+# Execute the appropriate command
+case "$COMMAND" in
+    install)
+        install "${ARGS[@]}"
+        ;;
+    uninstall)
+        uninstall "${ARGS[@]}"
+        ;;
+    set)
+        set "${ARGS[@]}"
+        ;;
+    get)
+        get "${ARGS[@]}"
+        ;;
+    *)
+        display_help
+        ;;
+esac
+
+
+## Usage
+
+##!/bin/bash
+#
+#SCRIPT_DIR="$(dirname "$0")"
+#source "$SCRIPT_DIR/utils/arg_parser.sh"
+#
+## Define the arguments and their corresponding variable names
+#command_option=("--command" "-c")
+#file_option=("--file" "-f")
+#verbose_option=("--verbose" "-v")
+#
+## Define the arguments and their corresponding variable names
+#args=(
+#    "command_option" "COMMAND"
+#    "file_option" "FILES"
+#    "verbose_option" "VERBOSE"
+#)
+#
+## Parse the argument definitions
+#parse_args "${args[@]}"
+## Enable multi-value for specific options
+#enable_multi_value "--command" "-c"
+#enable_multi_value "--file" "-f"
+## Enable flags (options without values)
+#enable_flag "--verbose" "-v"
+#
+## Parse the command line arguments
+#parse_command_line "$@"
+#
+## Get the value of the arguments
+#cmd=$(get_arg_value "COMMAND")
+#files=$(get_arg_value "FILES")
+#verbose=$(get_arg_value "VERBOSE")
+#
+#
+## Output the values
+#echo "Positional Arguments: ${POSITIONAL_ARGS[@]}"
+#echo "Command: ${cmd[@]}"
+#echo "Files: ${files[@]}"
+#echo "Verbose: ${verbose}"
+#
+#if [[ $verbose == true ]]; then
+#    echo "Verbose mode is enabled"
+#else
+#    echo "Verbose is disabled"
+#fi
+
+
+## Positional Arguments: install-packages fictitious-package-1 fictitious-package-2 fictitious-package-3
+#
+##!/bin/bash
+#
+#SCRIPT_DIR="$(dirname "$0")"
+#source "$SCRIPT_DIR/utils/arg_parser.sh"
+#
+## Define the arguments and their corresponding variable names
+#config_path_option=("--config" "-c")
+#
+## Define the arguments and their corresponding variable names
+#args=(
+#    "config_path_option" "config_path"
+#)
+#
+## Parse the argument definitions
+#parse_args "${args[@]}"
+#
+## Parse the command line arguments
+#parse_command_line "$@"
+#
+## Extract the first positional argument as COMMAND
+#COMMAND="${POSITIONAL_ARGS[0]}"
+#
+## Extract the remaining positional arguments as ARGS array
+#ARGS=("${POSITIONAL_ARGS[@]:1}")
+#
+## Get the value of the arguments
+#CONFIG_PATH=$(get_arg_value "config_path")
+#
+## Output the values
+#echo "Command: $COMMAND"
+#echo "Arguments: ${ARGS[@]}"
+#echo "Config path: $CONFIG_PATH"
