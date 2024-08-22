@@ -26,13 +26,18 @@ install() {
         return 1
     fi
 
+    source "$SCRIPT_DIR/utils/validate_config.sh"  
+    # Check if a venv is already installed in the given path
+    if [[ -d "$install_path" ]] && $(validate_config "$install_path/config.sh"); then
+        echo "Error: venv is already installed at $install_path"
+        exit 1
+    fi
+
     # Check if directory exists or can be created
-    if [ ! -d "$install_path" ]; then
-        mkdir -p "$install_path"
-        if [ $? -ne 0 ]; then
-            echo "Error: Unable to create directory at $install_path."
-            return 1
-        fi
+    mkdir -p "$install_path"
+    if [ $? -ne 0 ]; then
+        echo "Error: Unable to create directory at $install_path."
+        return 1
     fi
 
     # Check if files can be created
