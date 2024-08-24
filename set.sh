@@ -22,7 +22,7 @@ update_variable_type() {
     sed -i "/^__VAR__TYPE__${var_name}=/d" "$CONFIG_FILE"
 
     # Append new entry with the variable type
-    echo "__VAR__TYPE__${var_name}=\"$var_type\"" >> "$CONFIG_FILE"
+    echo "__VAR__TYPE__${var_name}=$var_type" >> "$CONFIG_FILE"
 }
 
 set_regular_var() {

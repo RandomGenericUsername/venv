@@ -27,11 +27,9 @@ get_regular_var() {
 get_array_var() {
     local var_name="$1"
     local var_value
-#
     if grep -q "^${var_name}=" "$ARRAY_VARIABLES"; then
         var_value=$(grep "^${var_name}=" "$ARRAY_VARIABLES" | cut -d'=' -f2-)
         var_value="${var_value:1:-1}"  # Remove parentheses
-#
         # Properly quote each element without adding extra quotes
         echo "$var_value" | sed -E 's/("[^"]+")/\1/g'
         return 0
@@ -41,31 +39,6 @@ get_array_var() {
     fi
 }
 
-#get_array_var() {
-#    local var_name="$1"
-#    local var_value
-#
-#    if grep -q "^${var_name}=" "$ARRAY_VARIABLES"; then
-#        var_value=$(grep "^${var_name}=" "$ARRAY_VARIABLES" | cut -d'=' -f2-)
-#        var_value="${var_value:1:-1}" # Remove the parentheses around the array
-#        
-#        # Use eval to convert the string into an array
-#        eval "array=($var_value)"
-#        
-#        # Create a new array with quoted elements
-#        local quoted_array=()
-#        for element in "${array[@]}"; do
-#            quoted_array+=("\"$element\"")
-#        done
-#
-#        # Return the new array
-#        echo "${quoted_array[@]}"
-#        return 0
-#    else
-#        echo ""
-#        return 1
-#    fi
-#}
 
 get_associative_array_var() {
     local var_name="$1"
